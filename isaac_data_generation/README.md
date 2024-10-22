@@ -7,4 +7,5 @@ Script to convert the numpy array into YOLO annotation format labels.
 
 Parameters:
 - **directory_path** : Path to the dataset directory
-- **prefix** : Prefix name
+- **IMAGE_WIDTH** : Generated images width
+- **IMAGE_HEIGHT** : Generated images height
