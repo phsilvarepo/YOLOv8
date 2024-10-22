@@ -8,24 +8,23 @@ If it is necessary to generate synthetic data, the current approach is to use Om
 Script to rename files by adding a prefix to the filenames
 
 Parameters:
-
-  path: dataset path
-  prefix: prefix name
+- **path** : Path to the dataset directory
+- **prefix** : Prefix name
   
 ## convert_labels.py
 Script to convert labels to according to a standart class ids
 
 Parameters:
 
-  directory_path: dataset path
-  class_mapping: Class dictionary
+- **directory_path** : Path to the dataset directory
+- **class_mapping** : Class dictionary
 
 ## split.py
 Script to split dataset into train and validation set
 
 Parameters:
 
-  dataset_dir : Path to complete dataset
-  train_dir : Path to train directory
-  test_dir : Path to test directory
-  train_ratio : ration of train/validation split
+- **dataset_dir** : Path to dataset directory
+- **train_dir** : Path to train directory
+- **test_dir** : Path to test directory
+- **train_ratio** : Ratio of train/validation split
