@@ -11,5 +11,7 @@ Parameters:
 Script to rename files by adding a prefix to the filenamenes
 
 Parameters:
+
   path: dataset path
+  
   prefix: prefix name
