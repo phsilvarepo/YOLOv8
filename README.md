@@ -8,7 +8,7 @@ If it is necessary to generate synthetic data, the current approach is to use Om
 Script to rename files by adding a prefix to the filenames
 
 Parameters:
-- **path** : Path to the dataset directory
+- **directory_path** : Path to the dataset directory
 - **prefix** : Prefix name
   
 ## convert_labels.py
