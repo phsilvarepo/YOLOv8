@@ -336,6 +336,10 @@ def main():
     parser.add_argument("--minio_secret_key", type=str, default="minioadmin", help="Secret key of MinIO")
     args = parser.parse_args()
 
+    if not os.path.exists(args.input_replicator_data_path):
+        print(f"Warning: Replicator data directory '{args.input_replicator_data_path}' does not exist.")
+        sys.exit(1)
+
     total_ratio = args.train_split_ratio + args.test_split_ratio + args.val_split_ratio
     if total_ratio != 100:
         print(f"Error: Train, test, and validation split ratios must sum to 100%. Current sum: {total_ratio}")
