@@ -19,3 +19,5 @@ Parameters:
 - **output_path** : Path to the output dataset directory location
 - **dataset_name** : dataset name
 - **more_parameters**: train/test/validation split, minio url/bucket
+
+Note: For the MinIO upload to work must ensure the client is running: minio server ~/minio --console-address :9001
