@@ -3,7 +3,7 @@ import random
 import shutil
 
 # Define paths for your YOLO dataset and where you want to save the train and test splits
-dataset_dir = '/home/rics/Desktop/Real_Screws_Dataset/images/train'
+dataset_dir = '/home/rics/Desktop/Real_Screws_Dataset'
 train_dir = '/home/rics/Desktop/Real_Screws_Dataset/img/train'
 test_dir = '/home/rics/Desktop/Real_Screws_Dataset/img/val'
 
