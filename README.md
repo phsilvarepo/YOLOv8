@@ -1,30 +1,44 @@
 # YOLOv8
 
-This package contains the necessary scripts for pre processing of the YOLOv8 input data. 
+This repository contains scripts for the full YOLOv8 pipeline — from data collection and annotation to training and inference. It supports ROS integration, Docker-based deployment, and Node-RED integration.
 
-If it is necessary to generate synthetic data, the current approach is to use Omniverse Replicator to attain the data. The isaac_data_generation folder contains the necessary scripts to convert the numpy arrays to the YOLO annotation format (.txt labels). Besides this there are also scrpits to change the filenames in case of matching names and an script to split the data into training and validation sets.
-
-## rename.py
-Script to rename files by adding a prefix to the filenames
-
-Parameters:
-- **directory_path** : Path to the dataset directory
-- **prefix** : Prefix name
+## isaac_data_generation
+The current approach to generate syhtnehtic images and annotation to trian the model, employs Omniverse Replicator to produce the data. The isaac_data_generation folder contains the necessary scripts to convert the output of the Replicaotr package , as numpy arrays to the YOLO annotation format (.txt labels). Besides these more crirtical scripts, there are also more scrpits to process the dataset, especially if several iterations of the omniverse pisodes are rquired (as the files are the smae and the class vary) 
   
-## convert_labels.py
-Script to convert labels to according to a standart class ids
+## train
+This folder includes a Google Colab notebook to train and validate a custom YOLOv8 model using your Google Drive.
 
-Parameters:
+Requirements:
 
-- **directory_path** : Path to the dataset directory
-- **class_mapping** : Class dictionary
+- Dataset in YOLO format
+- .yaml configuration file
 
-## split.py
-Script to split dataset into train and validation set
+Note: Trained model weights are not automatically saved to **Google Drive**. Make sure to manually download them after training.
 
-Parameters:
+## yolov8_ros
 
-- **dataset_dir** : Path to dataset directory
-- **train_dir** : Path to train directory
-- **test_dir** : Path to test directory
-- **train_ratio** : Ratio of train/validation split
+This ROS package enables real-time inference using a trained YOLOv8 model. The node susbribes to the sensor_msgs/Image in the **/rgb** topic. And outputs the follwoing topics: 
+
+- **/ultralytics/detection/image** -- (sensor_msg/Image) An image of the the detected bounding boxes, classes and confidence score
+- **/ultralytics/detection/classe** -- (String) Message with the detected classes
+- **/ultralytics/detection/bounding_boxes** -- (String) Message with a detailed description of the bounding boxes, including center_x, center_y, width, height, and class name.
+
+Requirements:
+
+- Weight of the model(.pt)
+
+## yolov8_container
+
+This package includes the yolov8_ros ROS package, as well as the necessary files for deploying it in a **Docker** environment.
+
+Requirements:
+
+- Weight of the model(.pt)
+
+## yolo_nodered_container
+
+This package allows you to run a custom YOLOv8 model in the **Node-RED** environment using a **Docker** container deployment.
+
+Requirements:
+
+- Weight of the model(.json and shards)
