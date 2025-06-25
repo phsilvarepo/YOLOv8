@@ -1,33 +1,42 @@
 import time
-
-import ros_numpy
 import rospy
+import ros_numpy
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
-
+import numpy as np
 from ultralytics import YOLO
 
-detection_model = YOLO("/root/catkin_ws/src/yolov8_ros/src/yolov8m.pt")
+# Load YOLOv8 model
+detection_model = YOLO("/home/rics/catkin_ws/src/yolov8_ros/src/yolov8m.pt")
+
+# Initialize ROS node
 rospy.init_node("ultralytics")
 time.sleep(1)
 
+# Publishers
 det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
 classes_pub = rospy.Publisher("/ultralytics/detection/classes", String, queue_size=5)
-bbox_pub = rospy.Publisher("/ultralytics/detection/bounding_boxes", String, queue_size=5)  # New publisher
+bbox_pub = rospy.Publisher("/ultralytics/detection/bounding_boxes", String, queue_size=5)
 
 def callback(data):
-    """Callback function to process image and publish annotated images."""
-    array = ros_numpy.numpify(data)
-    if det_image_pub.get_num_connections():
-        det_result = detection_model(array)
-        det_annotated = det_result[0].plot()
+    """Callback to process image and publish detection results."""
+    # Convert ROS Image message to NumPy array
+    image_np = ros_numpy.numpify(data)
+
+    if det_image_pub.get_num_connections() > 0:
+        # Run inference
+        det_result = detection_model(image_np, conf=0.4) # Confidence Threshold
+        det_annotated = det_result[0].plot()  
+        # Publish annotated image (RGB)
         det_image_pub.publish(ros_numpy.msgify(Image, det_annotated, encoding="rgb8"))
 
+        # Extract class names
         classes = det_result[0].boxes.cls.cpu().numpy().astype(int)
         names = [det_result[0].names[i] for i in classes]
         classes_pub.publish(String(data=str(names)))
 
-        boxes = det_result[0].boxes.xywh.cpu().numpy()  # (center_x, center_y, width, height)
+        # Extract bounding boxes (xywh format)
+        boxes = det_result[0].boxes.xywh.cpu().numpy()
         yolo_bounding_boxes = []
 
         for i, box in enumerate(boxes):
@@ -39,11 +48,12 @@ def callback(data):
                 "classname": names[i]
             }
             yolo_bounding_boxes.append(bbox_info)
-        
-        # Publish bounding box information as JSON string
+
+        # Publish bounding box info
         bbox_pub.publish(String(data=str(yolo_bounding_boxes)))
 
-rospy.Subscriber("/dock_rgb", Image, callback)
+# Subscribe to image topic
+rospy.Subscriber("/rgb", Image, callback)
 
-while True:
-    rospy.spin()
+# Spin to keep node alive
+rospy.spin()
