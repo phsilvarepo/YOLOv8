@@ -3,7 +3,7 @@
 This repository contains scripts for the full YOLOv8 pipeline — from data collection and annotation to training and inference. It supports ROS integration, Docker-based deployment, and Node-RED integration.
 
 ## isaac_data_generation
-The current approach to generate syhtnehtic images and annotation to trian the model, employs Omniverse Replicator to produce the data. The isaac_data_generation folder contains the necessary scripts to convert the output of the Replicaotr package , as numpy arrays to the YOLO annotation format (.txt labels). Besides these more crirtical scripts, there are also more scrpits to process the dataset, especially if several iterations of the omniverse pisodes are rquired (as the files are the smae and the class vary) 
+The current approach for generating synthetic images and annotations to train the model uses Omniverse Replicator to produce the data. This contains the necessary scripts to convert the output of the Replicator package (as NumPy arrays) into the YOLO annotation format (.txt labels). In addition to these core scripts, there are additional tools for processing the dataset — especially useful when running multiple Omniverse episodes, where image filenames remain the same, and also class labels vary.
   
 ## train
 This folder includes a Google Colab notebook to train and validate a custom YOLOv8 model using your Google Drive.
