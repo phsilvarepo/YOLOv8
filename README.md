@@ -17,7 +17,7 @@ Note: Trained model weights are not automatically saved to **Google Drive**. Mak
 
 ## yolov8_ros
 
-This ROS package enables real-time inference using a trained YOLOv8 model. The node susbribes to the sensor_msgs/Image in the **/rgb** topic. And outputs the follwoing topics: 
+This ROS package enables real-time inference using a custom YOLOv8 model. The node subscribes to the sensor_msgs/Image in the **/rgb** topic. And outputs the following topics: 
 
 - **/ultralytics/detection/image** -- (sensor_msg/Image) An image of the the detected bounding boxes, classes and confidence score
 - **/ultralytics/detection/classe** -- (String) Message with the detected classes

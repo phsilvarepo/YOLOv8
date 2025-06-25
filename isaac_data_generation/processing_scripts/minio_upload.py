@@ -40,86 +40,6 @@ def extract_classes(replicator_path, dataset_name, base_path):
 
     return len(unique_classes)
 
-def convert_labels(directory_path):
-    unique_classes = set()  # Set to store unique class names
-    
-    for filename in os.listdir(directory_path):
-        if filename.endswith('.png'):  # Change to the appropriate image format
-            image_filenames.append(filename)
-            
-            # Get the corresponding label filenames
-            np_filename = os.path.splitext(filename)[0]
-            numeric_part = np_filename[-4:]  # Extract the last 4 characters (assumes it's always numeric)
-            json_filename = np_filename[:-4] + "labels_" + numeric_part + ".json"
-            txt_filename = 'rgb_' + numeric_part + '.txt'
-            
-            label_filenames.append(json_filename)
-            label_filenames.append(txt_filename)
-
-    # Process `.npy` files and generate labels
-    for filename in os.listdir(directory_path):
-        if filename.endswith('.npy'):
-            np_filename = os.path.splitext(filename)[0]
-            numeric_part = np_filename[-4:]  # Extract the last 4 characters (assumes it's always numeric)
-            json_filename = np_filename[:-4] + "labels_" + numeric_part + ".json"
-            yolo_filename = 'rgb_' + numeric_part + '.txt'
-
-            print(f"Generating label files for {filename}...")
-
-            # Construct the path to the JSON file
-            json_file_path = os.path.join(directory_path, json_filename)
-
-            with open(json_file_path, 'r') as json_file:
-                data = json.load(json_file)
-
-                for key, value in data.items():
-                    numeric_value = key
-                    class_name = value["class"]
-                    unique_classes.add(class_name)  # Add class name to the set
-                    print("\nNumeric Value:" + numeric_value + " Class Name: " + class_name)
-
-            # Normalize bounding box coordinates
-            bb_info = np.load(os.path.join(directory_path, filename))
-            yolo_path = os.path.join(directory_path, yolo_filename)
-
-            # Image dimensions (get dimensions of the first image file)
-            image_file = image_filenames[0]
-            image_path = os.path.join(directory_path, image_file)
-            with Image.open(image_path) as img:
-                IMAGE_WIDTH, IMAGE_HEIGHT = img.size  # Get width and height
-
-            for item in bb_info:
-                semantic_id = int(item['semanticId'])  # Convert the class ID to an integer
-                x_min = item['x_min']
-                y_min = item['y_min']
-                x_max = item['x_max']
-                y_max = item['y_max']
-
-                x_center = (x_min + x_max) / (2 * IMAGE_WIDTH)
-                y_center = (y_min + y_max) / (2 * IMAGE_HEIGHT)
-                width = (x_max - x_min) / IMAGE_WIDTH
-                height = (y_max - y_min) / IMAGE_HEIGHT
-
-                annotation_line = "{} {:.6f} {:.6f} {:.6f} {:.6f}".format(
-                    semantic_id, x_center, y_center, width, height)
-                with open(yolo_path, 'a') as annotation_file:
-                    annotation_file.write(annotation_line + '\n')
-
-def remove_extra_files(directory_path):
-    for filename in os.listdir(directory_path):
-        file_path = os.path.join(directory_path, filename)
-
-        # Keep only image files (.png) and their corresponding label files (.txt)
-        if filename in image_filenames or filename in label_filenames:
-            continue  # Skip deleting image and label files
-
-        # Delete all other files
-        try:
-            os.remove(file_path)
-            print(f"Deleted: {filename}")
-        except Exception as e:
-            print(f"Error deleting {filename}: {e}")
-
 # Define AAS compliant dataset structure
 def create_dataset_structure(dataset_name, base_path):
     dataset_path = os.path.join(base_path, dataset_name)
@@ -165,56 +85,6 @@ def populate_dataset(dataset_name, base_path, replicator_dataset_path):
             print(f"Copied label: {filename} -> {annotations_path}")
 
     print(f"Dataset population complete for {dataset_name}.")
-
-
-#DO TEST IMPLEMENTATION
-def split_dataset(dataset_name, base_path, train_ratio, test_ratio):
-    
-    dataset_path = os.path.join(base_path, dataset_name)
-    raw_path = os.path.join(dataset_path, "raw")
-    annotations_path = os.path.join(dataset_path, "annotations")
-    train_path = os.path.join(dataset_path, "train")
-    val_path = os.path.join(dataset_path, "val")
-    test_path = os.path.join(dataset_path, "test")
-
-    # List all images in the dataset directory
-    all_images = [f for f in os.listdir(raw_path) if f.endswith('.png')]
-    
-    # Shuffle images
-    random.shuffle(all_images)
-
-    # Compute split indices
-    num_total = len(all_images)
-    num_train = int(num_total * train_ratio)
-    num_test = int(num_total * test_ratio)
-    
-    # Assign images to each split
-    train_images = all_images[:num_train]
-    test_images = all_images[num_train:num_train + num_test]
-    val_images = all_images[num_train + num_test:]
-
-    def move_files(image_list, src_folder, dest_folder):
-        """Helper function to move images and labels."""
-        for image in image_list:
-            image_name, _ = os.path.splitext(image)
-            src_image_path = os.path.join(src_folder, image)
-            src_label_path = os.path.join(annotations_path, image_name + '.txt')
-
-            dest_image_path = os.path.join(dest_folder, image)
-            dest_label_path = os.path.join(dest_folder, image_name + '.txt')
-
-            shutil.copy(src_image_path, dest_image_path)
-            if os.path.exists(src_label_path):
-                shutil.copy(src_label_path, dest_label_path)
-
-    # Move images and labels
-    move_files(train_images, raw_path, train_path)
-    move_files(test_images, raw_path, test_path)
-    move_files(val_images, raw_path, val_path)
-
-    print(f"Train set: {len(train_images)} images")
-    print(f"Test set: {len(test_images)} images")
-    print(f"Validation set: {len(val_images)} images")
 
 def get_folder_size_gb(path):
     """Calculate the folder size in GB."""
@@ -329,7 +199,6 @@ def main():
     parser.add_argument("--train_split_ratio", type=int, default=70, help="Train split percentage of the dataset")
     parser.add_argument("--test_split_ratio", type=int, default=0, help="Test split percentage of the dataset")
     parser.add_argument("--val_split_ratio", type=int, default=30, help="Validation split percentage of the dataset")
-    parser.add_argument("--input_replicator_data_path", type=str, default="/home/rics/omni.replicator_out/components_dell_3020_sff", help="Path to the dataset generated by Isaac Sim")
     parser.add_argument("--minio_url", type=str, default="127.0.0.1:9000", help="URL of MinIO")
     parser.add_argument("--minio_bucket_name", type=str, default="image-datasets", help="MinIO bucket name")
     parser.add_argument("--minio_access_key", type=str, default="minioadmin", help="Access key of MinIO")
@@ -345,15 +214,9 @@ def main():
         print(f"Error: Train, test, and validation split ratios must sum to 100%. Current sum: {total_ratio}")
         sys.exit(1)  # Exit the program with an error code
 
-    train_ratio = args.train_split_ratio / 100
-    test_ratio = args.test_split_ratio / 100
-
     create_dataset_structure(args.dataset_name, args.output_path)
     number_classes = extract_classes(args.input_replicator_data_path, args.dataset_name, args.output_path)
-    convert_labels(args.input_replicator_data_path)
-    remove_extra_files(args.input_replicator_data_path)
     populate_dataset(args.dataset_name, args.output_path, args.input_replicator_data_path)
-    split_dataset(args.dataset_name, args.output_path, train_ratio, test_ratio)
     edit_metadata(args.dataset_name, args.output_path, args.minio_url, args.minio_bucket_name, args.train_split_ratio, args.test_split_ratio, args.val_split_ratio, number_classes)
     upload_minio_bucket(args.dataset_name, args.output_path, args.minio_url, args.minio_access_key, args.minio_secret_key, args.minio_bucket_name)
 
